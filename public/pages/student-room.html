@@ -1,0 +1,186 @@
+<div class="student-room-page">
+    <div class="div-header">
+        <div class="room-header">
+            <div class="container">
+                <div class="room-info">
+                    <h1><i class="fas fa-users"></i> Sala Temporária</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="room-content">
+        <div class="container">
+            <div class="room-features">
+                <div class="feature-grid">
+                    <div class="feature-item container-mao" onclick="levantarMao()">
+                        <div class="feature-icon" id="iconeMao">
+                            <p>✊</p>
+                            <i class="fas fa-hand-fist" style="display: none;"></i>
+                        </div>
+                        <h3 class="statusMaoLevantada">Mão Abaixada <div class="status-circle"></div>
+                        </h3>
+                        <p>Solicite a atenção do professor</p>
+                    </div>
+
+                    <div class="feature-item" onclick="abrirSecaoNormal('student-activities-section', 
+                        () => {
+                        if (window.sistemaAtividades) {
+                            window.sistemaAtividades.atualizarUIAluno();
+                        }}
+                    )">
+                        <div class="feature-icon">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <h3>Ver Atividades</h3>
+                        <p>Veja e responda atividades</p>
+                    </div>
+
+                    <div class="feature-item" onclick="abrirSecaoNormal('materials-section', 
+                    () => {
+                        if (window.sistemaMateriais) {
+                            window.sistemaMateriais.carregarMateriais();
+                        }}
+                    )">
+                        <div class="feature-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <h3>Materiais</h3>
+                        <p>Acesse os materiais da sala</p>
+                    </div>
+
+                    <div class="feature-item" onclick="abrirSecaoNormal('student-quiz-section', 
+                        () => {
+                            if (window.sistemaQuiz) {  // ✅ Corrigido: sistemaQuiz, não sistemaQuizzes
+                                window.sistemaQuiz.carregarQuizzesAluno();
+                                window.sistemaQuiz.atualizarUIListaQuizzesAluno();
+                            }
+                        }
+                    )">
+                        <div class="feature-icon">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <h3>Quizzes</h3>
+                        <p>Veja os quizzes disponíveis</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Student Activities Section -->
+<div class="content-section activities-section student-sem-scroll" id="student-activities-section"
+    style="display: none;">
+    <div class="content-section-fundo activities-section-fundo container-simples">
+        <div class="activities-header">
+            <h2><i class="fas fa-clipboard-list"></i> Atividades</h2>
+            <div class="activities-actions">
+                <button class="btn btn-secondary" onclick="fecharTodasSecoes()">
+                    <i class="fas fa-times"></i> Fechar
+                </button>
+            </div>
+        </div>
+        <div class="activities-list" id="student-activities-list">
+            <!-- Lista de atividades será carregada aqui -->
+        </div>
+    </div>
+</div>
+
+<div class="content-section activities-section student-sem-scroll" id="materials-section" style="display: none;">
+    <div class="content-section-fundo activities-section-fundo container-simples">
+        <div class="activities-header">
+            <h2> Materiais</h2>
+            <div class="activities-actions">
+                <button class="btn btn-secondary" onclick="fecharTodasSecoes()">
+                    <i class="fas fa-times"></i> Fechar
+                </button>
+            </div>
+        </div>
+        <div class="materials-list" id="student-materials-list">
+            <!-- Lista de materiais do aluno será carregada aqui -->
+        </div>
+    </div>
+</div>
+
+<div class="content-section activities-section student-sem-scroll" id="student-quiz-section" style="display: none;">
+    <div class="content-section-fundo activities-section-fundo container-simples">
+        <div class="activities-header">
+            <h2><i class="fas fa-question-circle"></i> Quizzes</h2>
+            <div class="activities-actions">
+                <button class="btn btn-secondary" onclick="fecharTodasSecoes()">
+                    <i class="fas fa-times"></i> Fechar
+                </button>
+            </div>
+        </div>
+        <div class="quiz-list" id="student-quiz-list">
+            <!-- Lista de quizzes será carregada aqui -->
+        </div>
+    </div>
+</div>
+
+<div class="content-section activities-section student-sem-scroll student-quiz-response-fundo" id="student-quiz-resposta-section"
+    style="display: none;">
+    <div class="content-section-fundo activities-section-fundo container-simples student-quiz-response">
+        <div class="quiz-resposta-header">
+            <h2 id="quiz-resposta-titulo">Quiz</h2>
+            <div class="quiz-resposta-acoes">
+                <button class="btn btn-secondary" id="btn-fechar-quiz-aluno">
+                    <i class="fas fa-times"></i> Fechar
+                </button>
+            </div>
+        </div>
+
+        <div class="quiz-area-resposta-aluno">
+            <div id="quiz-formulario-pergunta-aluno">
+                <!-- Formulário da pergunta será renderizado aqui -->
+            </div>
+
+            <div class="quiz-botoes-navegacao-aluno">
+                <button class="btn btn-secondary" id="btn-pergunta-anterior-aluno">
+                    <i class="fas fa-chevron-left"></i> Anterior
+                </button>
+                <button class="btn btn-secondary" id="btn-proxima-pergunta-aluno">
+                    <i class="fas fa-chevron-right"></i> Próxima
+                </button>
+                <button class="btn btn-primary" id="btn-enviar-respostas-aluno">
+                    <i class="fas fa-check"></i> Enviar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Student Name Modal -->
+<div class="modal content-name" id="student-name-modal" style="display: flex;">
+    <div class="modal-content content-name student-name-modal-content">
+        <div class="modal-header">
+            <h3>Bem-vindo à sala!</h3>
+        </div>
+        <div class="modal-body">
+            <p>Digite seu nome:</p>
+            <div class="form-group">
+                <input type="text" id="student-name-input" placeholder="Digite seu nome completo" maxlength="50"
+                    class="student-name-input">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="confirmarNomeAluno()">
+                <i class="fas fa-check"></i>
+                Confirmar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import SistemaMateriais from '../js/materiais.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!window.sistemaMateriais) {
+            window.sistemaMateriais = new SistemaMateriais();
+        }
+    });
+</script>
+<script type="module" src="../js/sistema-mao.js"></script>

@@ -1,0 +1,235 @@
+/* Materiais Section */
+#materials-section {
+    animation: slideIn 0.3s ease-out;
+}
+
+.materials-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing);
+}
+
+.material-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--spacing-lg);
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    transition: var(--transition);
+    width:100%
+}
+
+.material-item:hover {
+    background: var(--gray-50);
+    border-color: var(--primary-blue);
+    box-shadow: var(--shadow-md);
+}
+
+.material-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing);
+    gap: 20px
+}
+
+.material-title-container {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing);
+    flex: 1;
+}
+
+.material-title-container i {
+    font-size: 1.5rem;
+    color: var(--primary-blue);
+}
+
+.material-title-container h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin: 0;
+    word-break: break-word;
+}
+
+.material-date-badge {
+    display: inline-block;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: var(--secondary-blue);
+    color: var(--primary-blue);
+    border-radius: var(--radius);
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.material-body {
+    margin-bottom: var(--spacing);
+    flex: 1;
+}
+
+.material-body p {
+    color: var(--gray-600);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+.material-date {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--gray-500);
+    font-size: 0.95rem;
+}
+
+.material-date i {
+    color: var(--gray-400);
+}
+
+.material-actions {
+    width: 100%;
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.material-actions .btn {
+    flex: 1;
+    min-width: 120px;
+}
+
+.material-actions .btn-primary {
+    background: var(--primary-blue);
+    color: var(--white);
+}
+
+.material-actions .btn-primary:hover {
+    background: var(--primary-blue-dark);
+}
+
+.material-actions .btn-secondary {
+    background: var(--gray-100);
+    color: var(--gray-700);
+    border: 1px solid var(--gray-300);
+}
+
+.material-actions .btn-secondary:hover {
+    background: var(--gray-200);
+}
+
+
+.fa-trash {
+    color: #dc2626 !important;
+}
+
+.material-actions .btn-error:hover {
+    background: #dc2626;
+}
+
+/* Student Material Specific */
+.student-material {
+    background: var(--white);
+}
+
+.student-material .material-actions {
+    justify-content: flex-start;
+}
+
+.student-material .btn {
+    flex: 0 1 auto;
+}
+
+/* Teacher Material Specific */
+.teacher-material {
+    background: var(--white);
+}
+
+.teacher-material .material-actions {
+    justify-content: space-between;
+}
+
+/* Empty State */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-2xl) var(--spacing);
+    text-align: center;
+    color: var(--gray-500);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: var(--gray-300);
+    margin-bottom: var(--spacing);
+}
+
+.empty-state p {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: var(--spacing-sm);
+    color: var(--gray-700);
+}
+
+.empty-state small {
+    color: var(--gray-500);
+    font-size: 0.875rem;
+}
+
+.empty-state .btn {
+    margin-top: var(--spacing);
+}
+
+/* Modal Styles */
+.enviar-material-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing);
+}
+
+.form-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: flex-end;
+    margin-top: var(--spacing);
+}
+
+.form-actions .btn {
+    flex: 0 1 auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .material-item {
+        padding: var(--spacing);
+    }
+
+    .material-date-badge {
+        margin-top: var(--spacing-xs);
+        align-self: flex-start;
+    }
+
+    .material-actions {
+        flex-direction: row;
+    }
+
+    .material-actions .btn {
+        width: 100%;
+    }
+
+    .teacher-material .material-actions {
+        justify-content: stretch;
+    }
+}
+
+@media(max-width: 480px) {
+    .material-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
