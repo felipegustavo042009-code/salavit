@@ -1,4 +1,4 @@
-const API_URL = 'http://192.168.100.78:3000';
+const API_URL = '';
 
 export class sistemaApi {
     constructor() {
