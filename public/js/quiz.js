@@ -1,3 +1,5 @@
+//Quiz em geral
+
 const DadosQuiz = {
     quizAtivo: null,
     quizzes: [],
@@ -34,6 +36,15 @@ const DadosQuiz = {
     adicionarPergunta() {
         this.perguntas.push(this.criarPerguntaVazia());
         this.perguntaAtualIndex = this.perguntas.length - 1;
+    },
+
+    removerPergunta(index) {
+        if (this.perguntas.length <= 1) return false;
+        this.perguntas.splice(index, 1);
+        if (this.perguntaAtualIndex >= this.perguntas.length) {
+            this.perguntaAtualIndex = this.perguntas.length - 1;
+        }
+        return true;
     },
 
     irParaPergunta(index) {
@@ -210,10 +221,54 @@ class GerenciarQuiz {
         let html = '';
         for (let i = 0; i < total; i++) {
             const classeAtiva = i === ativo ? 'quiz-card-pergunta ativo' : 'quiz-card-pergunta';
-            html += `<button class="${classeAtiva}" data-index="${i}">${i + 1}</button>`;
+            const temMultiplasPerguntas = total > 1;
+            html += `
+                <div class="quiz-card-wrapper" data-index="${i}">
+                    <button class="${classeAtiva}" data-index="${i}">${i + 1}</button>
+                    ${temMultiplasPerguntas ? `<button class="quiz-btn-apagar-pergunta" data-index="${i}" title="Apagar pergunta"><i class="fas fa-trash"></i></button>` : ''}
+                </div>
+            `;
         }
 
         container.innerHTML = html;
+        //Somente redenrizar depois que ele cirar(achei melhor escrenvo), -depois tirar
+        this.vincularEventosApagar();
+    }
+
+    vincularEventosApagar() {
+        const container = document.getElementById('quiz-cards-perguntas');
+        if (!container) return;
+
+        //Tive que colocar para que ele simplesmente tirar o primeiro butão com o apagar, -depois tirar
+        container.querySelectorAll('.quiz-btn-apagar-pergunta').forEach(btn => {
+            btn.style.display = 'none';
+        });
+
+        // Mostrar/ocultar botão de apagar ao passar o mouse
+        container.querySelectorAll('.quiz-card-wrapper').forEach((wrapper, index) => {
+            wrapper.addEventListener('mouseenter', () => {
+                const btnApagar = wrapper.querySelector('.quiz-btn-apagar-pergunta');
+                if (btnApagar && DadosQuiz.perguntas.length > 1) {
+                    btnApagar.style.display = 'flex';
+                }
+            });
+
+            wrapper.addEventListener('mouseleave', () => {
+                const btnApagar = wrapper.querySelector('.quiz-btn-apagar-pergunta');
+                if (btnApagar) {
+                    btnApagar.style.display = 'none';
+                }
+            });
+        });
+
+        // Evento de clique no botão de apagar
+        container.querySelectorAll('.quiz-btn-apagar-pergunta').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const index = parseInt(btn.dataset.index);
+                this.removerPergunta(index);
+            });
+        });
     }
 
     renderizarFormularioPergunta() {
@@ -316,6 +371,25 @@ class GerenciarQuiz {
         if (container) {
             container.scrollLeft = container.scrollWidth;
         }
+    }
+
+    async removerPergunta(index) {
+        if (DadosQuiz.perguntas.length <= 1) {
+            showToast('O quiz deve ter pelo menos uma pergunta', 'warning');
+            return;
+        }
+
+        //Pensando se deixa ou não a opção de apagar a pergunta, -depois tirar -duvida
+        const confirmar = await mostrarModalGeral(
+            `Você tem certeza que deseja excluir a pergunta ${index + 1}? Esta ação não pode ser desfeita.`,
+            'confirmar',
+            'Enviar Quiz'
+        );
+        if (!confirmar) return;
+
+        DadosQuiz.removerPergunta(index);
+        this.renderizarCardsPerguntas();
+        this.renderizarFormularioPergunta();
     }
 
     adicionarOpcao() {
@@ -923,6 +997,9 @@ class GerenciarQuiz {
                             <div class="status-badge status-completed">
                                 <i class="fas fa-check-circle"></i> Feito
                             </div>
+                            <button class="btn-ver-respostas-aluno" data-aluno-id="${aluno.id}" data-aluno-nome="${aluno.nome}" data-quiz-id="${quizId}">
+                                <i class="fas fa-eye"></i> Respostas
+                            </button>
                         </div>
                     </div>
                 `;
@@ -957,9 +1034,409 @@ class GerenciarQuiz {
     }
 }
 
+class VisualizadorRespostasQuiz {
+    constructor() {
+        this.respostasAlunoAtual = null;
+        this.perguntaAtualIndex = 0;
+        this.quizAtual = null;
+        this.alunoAtual = null;
+        this.modal = null;
+        this.inicializar();
+    }
+
+    inicializar() {
+        this.criarModal();
+        this.vincularEventos();
+    }
+
+    criarModal() {
+
+        // Verifica se o modal já existe
+        if (document.getElementById('visualizador-respostas-modal')) {
+            this.modal = document.getElementById('visualizador-respostas-modal');
+            return;
+        }
+
+        const modal = document.createElement('div');
+        modal.id = 'visualizador-respostas-modal';
+        modal.className = 'modal quiz-modal activity-modal';
+        modal.style.display = 'none';
+        modal.innerHTML = `
+            <div class="quiz-modal-content activity-modal-content">
+                <div class="quiz-resposta-header">
+                    <div>
+                        <h2 id="titulo-respostas-aluno"></h2>
+                        <p id="info-aluno-respostas" style="color: var(--gray-600); margin-top: 0.5rem;"></p>
+                    </div>
+                    <div class="quiz-resposta-acoes">
+                        <button class="btn btn-secondary" id="btn-fechar-respostas-aluno">
+                            <i class="fas fa-times"></i> Fechar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Barra de cards de perguntas -->
+                <div class="quiz-barra-perguntas">
+                    <div id="quiz-cards-perguntas-respostas" style="display: flex; gap: 0.5rem; flex-wrap: nowrap;">
+                        <!-- Cards numerados serão gerados aqui -->
+                    </div>
+                </div>
+
+                <!-- Estatísticas -->
+                <div id="quiz-estatisticas-respostas" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--gray-50); border-radius: var(--radius-lg); border: 1px solid var(--gray-200);">
+                    <!-- Estatísticas serão inseridas aqui -->
+                </div>
+
+                <!-- Área de visualização da pergunta -->
+                <div class="quiz-area-resposta-aluno">
+                    <div id="quiz-formulario-respostas-aluno">
+                        <!-- Pergunta e respostas serão renderizadas aqui -->
+                    </div>
+                </div>
+
+                <!-- Botões de navegação -->
+                <div class="quiz-botoes-navegacao-aluno">
+                    <button class="btn btn-secondary" id="btn-pergunta-anterior-respostas">
+                        <i class="fas fa-chevron-left"></i> Anterior
+                    </button>
+                    <button class="btn btn-secondary" id="btn-proxima-pergunta-respostas">
+                        Próxima <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        this.modal = modal;
+    }
+
+    vincularEventos() {
+
+        document.addEventListener('click', (e) => {
+            const btnVerRespostas = e.target.closest('.btn-ver-respostas-aluno');
+
+            if (btnVerRespostas) {
+                const alunoId = btnVerRespostas.dataset.alunoId;
+                const alunoNome = btnVerRespostas.dataset.alunoNome;
+                const quizId = btnVerRespostas.dataset.quizId;
+
+                this.abrirVisualizadorRespostas(quizId, alunoId, alunoNome);
+            }
+
+            const btnFecharRespostas = e.target.closest('#btn-fechar-respostas-aluno');
+            if (btnFecharRespostas) {
+                this.fecharVisualizadorRespostas();
+            }
+
+            const btnProximaPerguntaRespostas = e.target.closest('#btn-proxima-pergunta-respostas');
+            if (btnProximaPerguntaRespostas) {
+                this.proximaPerguntaRespostas();
+            }
+
+            const btnPerguntaAnteriorRespostas = e.target.closest('#btn-pergunta-anterior-respostas');
+            if (btnPerguntaAnteriorRespostas) {
+                this.perguntaAnteriorRespostas();
+            }
+
+            const cardPerguntaRespostas = e.target.closest('.quiz-card-pergunta-respostas');
+            if (cardPerguntaRespostas) {
+                const index = parseInt(cardPerguntaRespostas.dataset.index);
+                this.navegarParaPerguntaRespostas(index);
+            }
+        });
+
+    }
+
+    async abrirVisualizadorRespostas(quizId, alunoId, alunoNome) {
+
+        try {
+            if (typeof mostrarCarregamento === 'function') {
+                mostrarCarregamento();
+            } else {
+                console.warn('🔷 [QUIZ-RESPOSTAS] função mostrarCarregamento não encontrada');
+            }
+
+            const idUsuario = localStorage.getItem('idUsuario');
+            const idSala = localStorage.getItem('idSala');
+
+            const respostaQuiz = await window.api.buscarQuiz(idUsuario, quizId);
+
+            if (!respostaQuiz || !respostaQuiz.quiz) {
+                if (typeof showToast === 'function') {
+                    showToast('Erro ao carregar quiz', 'error');
+                }
+                if (typeof esconderCarregamento === 'function') {
+                    esconderCarregamento();
+                }
+                return;
+            }
+
+            const respostaAluno = await window.api.listarRespostaQuiz(idUsuario, quizId, idSala);
+
+            if (!respostaAluno || !respostaAluno.respostas) {
+                if (typeof showToast === 'function') {
+                    showToast('Erro ao carregar respostas', 'error');
+                }
+                if (typeof esconderCarregamento === 'function') {
+                    esconderCarregamento();
+                }
+                return;
+            }
+
+            // Encontrar as respostas do aluno específico
+            const respostasDoAluno = respostaAluno.respostas.find(r => r.usuarioId === alunoId);
+            if (!respostasDoAluno) {
+                if (typeof showToast === 'function') {
+                    showToast('Respostas do aluno não encontradas', 'error');
+                }
+                if (typeof esconderCarregamento === 'function') {
+                    esconderCarregamento();
+                }
+                return;
+            }
+
+            this.quizAtual = respostaQuiz.quiz;
+            this.respostasAlunoAtual = respostasDoAluno;
+            this.alunoAtual = { id: alunoId, nome: alunoNome };
+            this.perguntaAtualIndex = 0;
+
+            this.renderizarVisualizadorRespostas();
+
+            if (typeof esconderCarregamento === 'function') {
+                esconderCarregamento();
+            }
+
+        } catch (error) {
+            console.error('🔷 [QUIZ-RESPOSTAS] ERRO:', error);
+            if (typeof esconderCarregamento === 'function') {
+                esconderCarregamento();
+            }
+            if (typeof showToast === 'function') {
+                showToast('Erro ao abrir respostas: ' + error.message, 'error');
+            }
+        }
+    }
+
+    renderizarVisualizadorRespostas() {
+
+        if (!this.modal) {
+            this.criarModal();
+        }
+
+        this.modal.style.display = 'flex';
+        this.modal.classList.add('active');
+
+        this.renderizarHeaderRespostas();
+        this.renderizarCardsPerguntas();
+        this.renderizarPerguntaRespostas();
+
+    }
+
+    renderizarHeaderRespostas() {
+        const titulo = document.getElementById('titulo-respostas-aluno');
+        const info = document.getElementById('info-aluno-respostas');
+
+        if (titulo) {
+            titulo.textContent = `${this.quizAtual.titulo}`;
+        }
+
+        if (info) {
+            info.innerHTML = `<i class="fas fa-user"></i> Respostas de: <strong>${this.alunoAtual.nome}</strong>`;
+        }
+    }
+
+    renderizarCardsPerguntas() {
+        const container = document.getElementById('quiz-cards-perguntas-respostas');
+        if (!container) {
+            return;
+        }
+
+        const total = this.quizAtual.perguntas.length;
+        const ativo = this.perguntaAtualIndex;
+
+        let html = '';
+        for (let i = 0; i < total; i++) {
+            const resposta = this.respostasAlunoAtual.respostas[i];
+            const acertou = resposta && resposta.correta;
+            const respondeu = resposta !== undefined && resposta.respostaSelecionada !== -1;
+
+            let classe = 'quiz-card-pergunta-respostas';
+            if (i === ativo) classe += ' ativo';
+            if (acertou) classe += ' acertou';
+            if (respondeu && !acertou) classe += ' errou';
+            if (!respondeu) classe += ' nao-respondeu';
+
+            html += `<button class="${classe}" data-index="${i}" title="${acertou ? 'Acertou' : respondeu ? 'Errou' : 'Não respondeu'}">${i + 1}</button>`;
+        }
+
+        container.innerHTML = html;
+    }
+
+    renderizarPerguntaRespostas() {
+        const container = document.getElementById('quiz-formulario-respostas-aluno');
+        if (!container) {
+            return;
+        }
+
+        const pergunta = this.quizAtual.perguntas[this.perguntaAtualIndex];
+        const resposta = this.respostasAlunoAtual.respostas[this.perguntaAtualIndex];
+        const index = this.perguntaAtualIndex;
+        const total = this.quizAtual.perguntas.length;
+
+        if (!pergunta) {
+            console.error('🔷 Pergunta não encontrada para índice:', this.perguntaAtualIndex);
+            return;
+        }
+
+
+        const respostaSelecionada = resposta ? resposta.respostaSelecionada : -1;
+        const acertou = resposta ? resposta.correta : false;
+
+        // Renderizar estatísticas
+        this.renderizarEstatisticas();
+
+        let opcoesHtml = '';
+        pergunta.opcoes.forEach((opcao, i) => {
+            const ehRespostaCorreta = i === pergunta.respostaCorreta;
+            const ehRespostaSelecionada = i === respostaSelecionada;
+            let classeOpcao = 'quiz-opcao-item-aluno-respostas';
+
+            if (ehRespostaSelecionada && acertou) {
+                classeOpcao += ' resposta-correta';
+            } else if (ehRespostaSelecionada && !acertou && respostaSelecionada !== -1) {
+                classeOpcao += ' resposta-incorreta';
+            } else if (ehRespostaCorreta && !acertou && respostaSelecionada !== -1) {
+                classeOpcao += ' resposta-correta-nao-selecionada';
+            }
+
+            let indicador = '';
+            if (ehRespostaSelecionada && acertou) {
+                indicador = '<i class="fas fa-check-circle" style="color: #10b981;"></i>';
+            } else if (ehRespostaSelecionada && !acertou && respostaSelecionada !== -1) {
+                indicador = '<i class="fas fa-times-circle" style="color: #ef4444;"></i>';
+            } else if (ehRespostaCorreta && !acertou && respostaSelecionada !== -1) {
+                indicador = '<i class="fas fa-check-circle" style="color: #10b981;"></i>';
+            } else {
+                indicador = `<span class="opcao-numero">${String.fromCharCode(65 + i)}</span>`;
+            }
+
+            opcoesHtml += `
+                <div class="${classeOpcao}">
+                    <div class="quiz-opcao-indicador">
+                        ${indicador}
+                    </div>
+                    <label class="quiz-opcao-label-respostas">${opcao}</label>
+                </div>
+            `;
+        });
+
+        container.innerHTML = `
+            <div class="quiz-pergunta-numero">
+                <span>Pergunta ${index + 1} de ${total}</span>
+            </div>
+            <div class="quiz-pergunta-texto-aluno">
+                <h3>${pergunta.texto}</h3>
+            </div>
+            <div class="quiz-opcoes-lista-aluno">
+                ${opcoesHtml}
+            </div>
+            ${respostaSelecionada === -1 ? `
+                <div class="quiz-alerta-nao-respondida">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Esta pergunta não foi respondida pelo aluno</span>
+                </div>
+            ` : ''}
+        `;
+    }
+
+    renderizarEstatisticas() {
+        const container = document.getElementById('quiz-estatisticas-respostas');
+        if (!container) {
+            return;
+        }
+
+        const respostas = this.respostasAlunoAtual.respostas;
+        const total = this.quizAtual.perguntas.length;
+        const acertos = respostas.filter(r => r && r.correta).length;
+        const erros = respostas.filter(r => r && !r.correta && r.respostaSelecionada !== -1).length;
+        const naoRespondidas = respostas.filter(r => !r || r.respostaSelecionada === -1).length;
+        const percentual = total > 0 ? Math.round((acertos / total) * 100) : 0;
+
+        container.innerHTML = `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem;">
+                <div style="text-align: center; padding: 0.75rem; background: var(--white); border-radius: var(--radius); border: 1px solid var(--gray-200);">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #10b981;">${acertos}</div>
+                    <div style="font-size: 0.875rem; color: var(--gray-600);">Acertos</div>
+                </div>
+                <div style="text-align: center; padding: 0.75rem; background: var(--white); border-radius: var(--radius); border: 1px solid var(--gray-200);">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #ef4444;">${erros}</div>
+                    <div style="font-size: 0.875rem; color: var(--gray-600);">Erros</div>
+                </div>
+                <div style="text-align: center; padding: 0.75rem; background: var(--white); border-radius: var(--radius); border: 1px solid var(--gray-200);">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #f59e0b;">${naoRespondidas}</div>
+                    <div style="font-size: 0.875rem; color: var(--gray-600);">Não respondidas</div>
+                </div>
+                <div style="text-align: center; padding: 0.75rem; background: var(--white); border-radius: var(--radius); border: 1px solid var(--gray-200);">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-blue);">${percentual}%</div>
+                    <div style="font-size: 0.875rem; color: var(--gray-600);">Aproveitamento</div>
+                </div>
+            </div>
+        `;
+
+    }
+
+    proximaPerguntaRespostas() {
+        if (this.perguntaAtualIndex < this.quizAtual.perguntas.length - 1) {
+            this.perguntaAtualIndex++;
+            this.renderizarCardsPerguntas();
+            this.renderizarPerguntaRespostas();
+        }
+    }
+
+    perguntaAnteriorRespostas() {
+        if (this.perguntaAtualIndex > 0) {
+            this.perguntaAtualIndex--;
+            this.renderizarCardsPerguntas();
+            this.renderizarPerguntaRespostas();
+        }
+    }
+
+    navegarParaPerguntaRespostas(index) {
+        if (index >= 0 && index < this.quizAtual.perguntas.length) {
+            this.perguntaAtualIndex = index;
+            this.renderizarCardsPerguntas();
+            this.renderizarPerguntaRespostas();
+        }
+    }
+
+    fecharVisualizadorRespostas() {
+        if (this.modal) {
+            this.modal.style.display = 'none';
+            this.modal.classList.remove('active');
+        }
+        this.respostasAlunoAtual = null;
+        this.perguntaAtualIndex = 0;
+        this.quizAtual = null;
+        this.alunoAtual = null;
+    }
+}
+
+// Instância global
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!window.visualizadorRespostasQuiz) {
+            window.visualizadorRespostasQuiz = new VisualizadorRespostasQuiz();
+        }
+    });
+} else {
+    if (!window.visualizadorRespostasQuiz) {
+        window.visualizadorRespostasQuiz = new VisualizadorRespostasQuiz();
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     window.sistemaQuiz = new GerenciarQuiz();
     window.GerenciarQuiz = window.sistemaQuiz;
 });
 
-export default GerenciarQuiz;
+export { GerenciarQuiz, VisualizadorRespostasQuiz };

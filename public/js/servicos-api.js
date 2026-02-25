@@ -423,15 +423,17 @@ export class sistemaApi {
         }
     }
 
-    async listarRespostaQuiz(idUsuario, quizId) {
+    async listarRespostaQuiz(idUsuario, quizId, idSala) {
+        console.log('Listando respostas do quiz com IDs:', { idUsuario, quizId, idSala });
         try {
-            const resposta = await fetch(`${API_URL}/quiz/respostas?quizId=${quizId}&idUsuario=${idUsuario}`);
+            const resposta = await fetch(`${API_URL}/quiz/respostas/listar?quizId=${quizId}&idUsuario=${idUsuario}&idSala=${idSala}`);
             return await resposta.json();
         } catch (error) {
             showToast('Erro ao listar respostas do quiz', 'error')
             console.log(`Erro ao se conectar ao servidor em quiz, error: ${error}`)
         }
-    }
+    };
+
     async buscarQuiz(idUsuario, quizId) {
         try {
             const resposta = await fetch(`${API_URL}/quiz/buscar?idUsuario=${idUsuario}&quizId=${quizId}`);

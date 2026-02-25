@@ -13,6 +13,8 @@
         <div class="container">
             <div class="room-features">
                 <div class="feature-grid">
+
+                    <!-- Mão Levantada -->
                     <div class="feature-item container-mao" onclick="levantarMao()">
                         <div class="feature-icon" id="iconeMao">
                             <p>✊</p>
@@ -23,6 +25,7 @@
                         <p>Solicite a atenção do professor</p>
                     </div>
 
+                    <!-- Atividades   -->
                     <div class="feature-item" onclick="abrirSecaoNormal('student-activities-section', 
                         () => {
                         if (window.sistemaAtividades) {
@@ -36,6 +39,7 @@
                         <p>Veja e responda atividades</p>
                     </div>
 
+                    <!-- Materiais   -->
                     <div class="feature-item" onclick="abrirSecaoNormal('materials-section', 
                     () => {
                         if (window.sistemaMateriais) {
@@ -49,6 +53,7 @@
                         <p>Acesse os materiais da sala</p>
                     </div>
 
+                    <!-- Quiz   -->
                     <div class="feature-item" onclick="abrirSecaoNormal('student-quiz-section', 
                         () => {
                             if (window.sistemaQuiz) {  // ✅ Corrigido: sistemaQuiz, não sistemaQuizzes
@@ -87,6 +92,7 @@
     </div>
 </div>
 
+<!-- Student Materials Section -->
 <div class="content-section activities-section student-sem-scroll" id="materials-section" style="display: none;">
     <div class="content-section-fundo activities-section-fundo container-simples">
         <div class="activities-header">
@@ -103,6 +109,7 @@
     </div>
 </div>
 
+<!-- Student Quiz Section -->
 <div class="content-section activities-section student-sem-scroll" id="student-quiz-section" style="display: none;">
     <div class="content-section-fundo activities-section-fundo container-simples">
         <div class="activities-header">
@@ -119,6 +126,7 @@
     </div>
 </div>
 
+<!-- Student Quiz-resposta Section -->
 <div class="content-section activities-section student-sem-scroll student-quiz-response-fundo" id="student-quiz-resposta-section"
     style="display: none;">
     <div class="content-section-fundo activities-section-fundo container-simples student-quiz-response">

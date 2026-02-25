@@ -25,6 +25,19 @@
             <p>Crie QR Code para acesso à sala</p>
         </div>
 
+        <!-- Mãos Levantadas -->
+        <div class="panel-card" onclick="abrirSecaoNormal('raised-hands-section', 
+        () => {
+        if (window.GerenciadorMaoLevantada) {
+            GerenciadorMaoLevantada.carregarMaosLevantadas();
+        }})">
+            <div class="card-icon">
+                <i class="fas fa-hand-paper"></i>
+            </div>
+            <h3>Mãos Levantadas</h3>
+            <p>Veja quem quer falar</p>
+        </div>
+
         <!-- Atividades -->
         <div class="panel-card" onclick="abrirSecaoNormal('teacher-activities-section',  
         () => {
@@ -38,18 +51,7 @@
             <p>Crie e gerencie atividades</p>
         </div>
 
-        <!-- Mãos Levantadas -->
-        <div class="panel-card" onclick="abrirSecaoNormal('raised-hands-section', 
-        () => {
-        if (window.GerenciadorMaoLevantada) {
-            GerenciadorMaoLevantada.carregarMaosLevantadas();
-        }})">
-            <div class="card-icon">
-                <i class="fas fa-hand-paper"></i>
-            </div>
-            <h3>Mãos Levantadas</h3>
-            <p>Veja quem quer falar</p>
-        </div>
+        <!-- Materiais -->
         <div class="panel-card" onclick="abrirSecaoNormal('materials-section',
         () => {
         if (window.sistemaMateriais) {
@@ -61,6 +63,8 @@
             <h3>Materiais</h3>
             <p>Envie e gerencie materiais da sala</p>
         </div>
+
+        <!-- Quizzes -->
         <div class="panel-card" onclick="abrirSecaoNormal('quiz-section',
         () => {
         if (window.sistemaQuiz) {
@@ -159,6 +163,7 @@
             </div>
         </div>
 
+        <!--  Atividades Section -->
         <div class="content-section activities-section container-simples" id="quiz-section" style="display: none;">
             <div class="quiz-header">
                 <h2>Gerenciar Quizzes</h2>
@@ -288,6 +293,7 @@
     </div>
 </div>
 
+<!-- Respostas da Atividade Modal  -->
 <div class="modal activity-modal" id="activity-responses-modal" style="display: none;">
     <div class="activity-modal-content">
         <div class="activity-modal-header">
@@ -303,8 +309,7 @@
     </div>
 </div>
 
-
-
+<!-- Quiz Modal -->
 <div class="quiz-modal activity-modal" id="quiz-edicao-section" style="display: none;">
     <div class="quiz-modal-content activity-modal-content">
         <div class="quiz-edicao-header">
@@ -337,7 +342,7 @@
         </div>
     </div>
 </div>
-
+<!-- Quiz Modal -->
 <div class="modal quiz-modal activity-modal" id="criar-quiz-modal" style="display: none;">
     <div class="quiz-modal-content activity-modal-content">
         <div class="quiz-modal-header activity-modal-header">
@@ -355,10 +360,11 @@
             <div class="form-group">
                 <label for="quiz-qtd-perguntas-input">Quantidade inicial de perguntas</label>
                 <input type="number" id="quiz-qtd-perguntas-input" class="form-input" placeholder="Ex: 5" min="1"
-                    max="50" value="1" required>
+                    max="50" value="1" required
+                    onkeydown="return event.key !== 'e' && event.key !== 'E' && event.key !== '.'  && event.key !== '-'  && event.key !== '+'">
             </div>
             <div class="form-actions">
-                <button type="button" class="btn btn-secondary" id="btn-cancelar-novo-quiz-form">
+                <button type="button" class="btn btn-secondary" id="btn-cancelar-novo-quiz">
                     Cancelar
                 </button>
                 <button type="button" class="btn btn-primary" id="btn-confirmar-novo-quiz">
@@ -374,7 +380,6 @@
     import { GerenciadorMaoLevantada } from '../js/sistema-mao.js';
 
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('Iniciando Gerenciador de Mãos Levantadas...');
         GerenciadorMaoLevantada.inicializar();
         if (EstadoSala.isTeacher && EstadoSala.roomCode) {
             GerenciadorSala.escutarAtualizacoesSala();
@@ -402,6 +407,16 @@
     document.addEventListener('DOMContentLoaded', () => {
         if (!window.sistemaMateriais) {
             window.sistemaMateriais = new SistemaMateriais();
+        }
+    });
+</script>
+
+<script type="module">
+    import VisualizadorRespostasQuiz from '../js/quiz.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!window.visualizadorRespostasQuiz) {
+            window.visualizadorRespostasQuiz = new VisualizadorRespostasQuiz();
         }
     });
 </script>

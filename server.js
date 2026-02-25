@@ -1,7 +1,7 @@
 
-const { apagarCloudinaryDocumentos, uploadCloudinaryDocumentos, upload } = require('./multer.js');
+const { apagarCloudinaryDocumentos, uploadCloudinaryDocumentos, upload } = require('./backend/multer.js');
 
-const { db } = require('./firebase_db.js');
+const { db } = require('./backend/firebase_db.js');
 const express = require('express');
 const cors = require('cors');
 const open = require('open').default;
@@ -1524,7 +1524,7 @@ app.get('/quiz/listar', async (req, res) => {
                     respondido: !respostaSnapshot.empty
                 });
                 continue;
-            }else {
+            } else {
                 const perguntas = perguntasSnapshot.docs.map(perguntaDoc => ({
                     id: perguntaDoc.id,
                     texto: perguntaDoc.data().Texto,
@@ -1792,8 +1792,6 @@ app.get('/quiz/respostas/listar', async (req, res) => {
             })
         }
 
-        const quizData = verificarQuiz.data();
-
         const verificarSala = await db.collection('salas').doc(idSala).get();
         if (!verificarSala.exists) {
             return res.status(400).json({
@@ -1816,9 +1814,10 @@ app.get('/quiz/respostas/listar', async (req, res) => {
 
             respostasListadas.push({
                 id: doc.id,
-                usuarioId: data.UsuarioId,
-                quizId: data.QuizId,
-                perguntas: data.Perguntas
+                usuarioId: data.StudentId,        
+                quizId: quizId,                    
+                criadoEm: data.CriadoEm,         
+                respostas: data.Respostas  
             });
         }
 

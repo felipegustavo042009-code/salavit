@@ -1494,7 +1494,7 @@ input[type="date"] {
 /* Estilos para o status da atividade na lista de alunos conectados */
 .activity-status-container {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     justify-content: center;
     align-items: center;
     gap: 0.25rem;
